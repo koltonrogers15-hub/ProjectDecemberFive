@@ -1,0 +1,90 @@
+/* GLOBAL */
+body {
+  margin: 0;
+  padding: 0;
+  background: #e8edf3;
+  font-family: Arial, sans-serif;
+}
+
+/* HEADER */
+#app-title {
+  background: #0b63ce;
+  color: white;
+  padding: 15px 20px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* MAIN GRID LAYOUT */
+#app-container {
+  height: 78vh;
+  display: grid;
+  grid-template-columns: 20% 60% 20%;
+  grid-template-rows: 1fr;
+  gap: 10px;
+}
+
+/* LEFT PANEL */
+#left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* RIGHT PANEL */
+#right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* CHART CONTAINERS */
+.chart-container {
+  background: white;
+  border: 1px solid #ddd;
+  height: 200px;
+  overflow: hidden;
+}
+
+/* REQUIRED FOR ARCGIS CHART COMPONENT TO RENDER */
+arcgis-chart {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* MAP CONTAINER */
+#map-container {
+  background: #bcdcf1;
+  border: 1px solid #aaa;
+  position: relative;
+  height: 100%;
+  min-height: 300px;
+}
+
+/* MAP VIEW DIV */
+#viewDiv {
+  width: 100%;
+  height: 100%;
+}
+
+/* RESOURCE BOX */
+#resource-box {
+  background: white;
+  border: 1px solid black;
+  padding: 10px;
+  height: 200px;
+}
+
+/* BOTTOM CHART */
+#bottom-chart {
+  width: 100%;
+  height: 25vh;
+  padding: 10px;
+}
+
+#app-downloads-chart {
+  background: white;
+  height: 100%;
+  border: 1px solid #ccc;
+}

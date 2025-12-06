@@ -5,7 +5,8 @@ import MapView from "https://js.arcgis.com/4.33/@arcgis/core/views/MapView.js";
 import LayerList from "https://js.arcgis.com/4.33/@arcgis/core/widgets/LayerList.js";
 
 import { statesLayer } from "./layers.js";
-import { updateCharts } from "./charts.js";
+import { updateCharts, updateResources } from "./charts.js";
+
 
 // ------------------------------------------------------------
 // CREATE MAP
@@ -14,6 +15,7 @@ const map = new Map({
   basemap: "gray-vector",
   layers: [statesLayer]
 });
+
 
 // ------------------------------------------------------------
 // CREATE VIEW
@@ -25,14 +27,17 @@ const view = new MapView({
   zoom: 4
 });
 
-window.view = view; // for debugging in console
+window.view = view; // for debugging
 
-// Optional: layer list
+
+// Optional debugging UI
 const layerList = new LayerList({ view });
 view.ui.add(layerList, "top-right");
 
-// keep a single highlight handle so only one state is highlighted
+
+// Keep a single highlight so only one state stays highlighted
 let highlightHandle = null;
+
 
 // ------------------------------------------------------------
 // CLICK HANDLER
@@ -40,7 +45,7 @@ let highlightHandle = null;
 view.on("click", async (event) => {
   try {
     const hit = await view.hitTest(event);
-    const result = hit.results.find((r) => r.graphic.layer === statesLayer);
+    const result = hit.results.find(r => r.graphic.layer === statesLayer);
 
     if (!result) {
       console.log("No state clicked");
@@ -48,35 +53,44 @@ view.on("click", async (event) => {
     }
 
     const attrs = result.graphic.attributes;
-
-    // Your layer attribute with the abbreviation
     const abbr = attrs.STATE_ABBR;
+
     console.log("Clicked state:", abbr, attrs);
 
-    // Look up your JSON data (if available)
-    const data =
-      typeof window !== "undefined" && window.bettingStateData
-        ? window.bettingStateData[abbr]
-        : undefined;
+    // Lookup JSON data
+    const data = window.bettingStateData
+      ? window.bettingStateData[abbr]
+      : undefined;
 
     console.log("State data:", data);
 
-    // Update chart ONLY if data exists
+
+    // -------------------------------
+    // UPDATE CHARTS + RESOURCES
+    // -------------------------------
     if (data) {
-      await updateCharts(abbr, data);
+      updateCharts(abbr, data);
+      updateResources(data);
+      console.log("updateResources was called");
+    } else {
+      console.warn("No matching JSON data for", abbr);
     }
 
-    // Get the layerView and apply a strong visible highlight
+
+    // -------------------------------
+    // HIGHLIGHT THE CLICKED STATE
+    // -------------------------------
     const layerView = await view.whenLayerView(statesLayer);
 
-    // remove previous highlight
+    // Remove old highlight
     if (highlightHandle) {
       highlightHandle.remove();
       highlightHandle = null;
     }
 
-    // highlight this state's graphic (cyan outline)
+    // Add new highlight
     highlightHandle = layerView.highlight(result.graphic);
+
   } catch (err) {
     console.error("Click handler error:", err);
   }

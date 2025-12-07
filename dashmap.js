@@ -4,6 +4,8 @@ import Map from "https://js.arcgis.com/4.33/@arcgis/core/Map.js";
 import MapView from "https://js.arcgis.com/4.33/@arcgis/core/views/MapView.js";
 import LayerList from "https://js.arcgis.com/4.33/@arcgis/core/widgets/LayerList.js";
 import Legend from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Legend.js";
+import GeoJSONLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/GeoJSONLayer.js";
+import Expand from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Expand.js";
 
 import { statesLayer, createGGRLayer, createYouthLayer } from "./layers.js";
 import { updateCharts, updateResources } from "./charts.js";
@@ -56,7 +58,7 @@ async function fetchYouthPercentByStateName() {
         continue;
       }
 
-      result[name] = youth / total; // fraction (0–1)
+      result[name] = youth / total; // 0–1 fraction
     }
 
     console.log("Youth percent by state:", result);
@@ -72,17 +74,45 @@ const youthPercentByStateName = await fetchYouthPercentByStateName();
 
 
 // ------------------------------------------------------------
-// 3. CREATE MAP + ADD LAYERS (GGR + YOUTH + BASE)
+// 3. CREATE HEATMAP LAYER FOR COLLEGE LOCATIONS (IPEDS)
+// ------------------------------------------------------------
+const collegeHeatmapRenderer = {
+  type: "heatmap",
+  colorStops: [
+    { color: "rgba(0,0,0,0)", ratio: 0 },
+    { color: "rgba(0,190,255,0.6)", ratio: 0.2 },
+    { color: "rgba(0,120,255,0.8)", ratio: 0.4 },
+    { color: "rgba(255,140,0,0.9)", ratio: 0.6 },
+    { color: "rgba(255,0,0,1)", ratio: 0.9 }
+  ],
+  maxPixelIntensity: 150,
+  minPixelIntensity: 0
+};
+
+const ipedsHeatmapLayer = new GeoJSONLayer({
+  url: "./schoolsheatmap.geojson",   // <-- your file
+  title: "College & University Density (Heatmap)",
+  renderer: collegeHeatmapRenderer,
+  visible: false
+});
+
+
+// ------------------------------------------------------------
+// 4. CREATE MAP + ADD LAYERS
 // ------------------------------------------------------------
 const ggrLayer = await createGGRLayer(totalsByStateName);
+ggrLayer.visible = false;
+
 const youthLayer = await createYouthLayer(youthPercentByStateName);
+youthLayer.visible = false;
 
 const map = new Map({
   basemap: "gray-vector",
   layers: [
-    ggrLayer,     // primary choropleth (on top)
-    youthLayer,   // second choropleth (toggle via LayerList)
-    statesLayer   // base outline / click layer
+    ipedsHeatmapLayer, // heatmap (off by default)
+    ggrLayer,          // off by default
+    youthLayer,        // off by default
+    statesLayer        // always on for clicking
   ]
 });
 
@@ -93,31 +123,47 @@ const view = new MapView({
   zoom: 4
 });
 
+
+// ------------------------------------------------------------
+// 5. LAYERLIST (normal)
+// ------------------------------------------------------------
 const layerList = new LayerList({ view });
 view.ui.add(layerList, "top-right");
 
-const legend = new Legend({
+
+// ------------------------------------------------------------
+// 6. LEGEND (wrapped in Expand widget, expanded by default)
+// ------------------------------------------------------------
+const legendWidget = new Legend({
   view,
   layerInfos: [
     { layer: ggrLayer, title: "Total Online GGR (2018–2024)" },
-    { layer: youthLayer, title: "Youth Pop. % (15–24)" }
+    { layer: youthLayer, title: "Youth Pop. % (15–24)" },
+    { layer: ipedsHeatmapLayer, title: "College Density (Heatmap)" }
   ]
 });
-view.ui.add(legend, "bottom-left");
 
+const legendExpand = new Expand({
+  view,
+  content: legendWidget,
+  expanded: true   // <-- starts expanded
+});
+
+view.ui.add(legendExpand, "bottom-left");
+
+
+// ------------------------------------------------------------
+// 7. CLICK HANDLER
+// ------------------------------------------------------------
 let highlightHandle = null;
 
-
-// ------------------------------------------------------------
-// 4. CLICK HANDLER (uses BASE statesLayer for charts)
-// ------------------------------------------------------------
 view.on("click", async (event) => {
   const hit = await view.hitTest(event);
   const result = hit.results.find(r => r.graphic.layer === statesLayer);
   if (!result) return;
 
   const attrs = result.graphic.attributes;
-  const abbr = attrs.STATE_ABBR; // "AZ", "CO", etc.
+  const abbr = attrs.STATE_ABBR;
 
   const data = window.bettingStateData
     ? window.bettingStateData[abbr]

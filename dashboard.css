@@ -20,18 +20,12 @@ body {
   height: 78vh;
   display: grid;
   grid-template-columns: 20% 60% 20%;
-  grid-template-rows: 1fr;
   gap: 10px;
+  padding: 10px;
 }
 
-/* LEFT PANEL */
-#left-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-/* RIGHT PANEL */
+/* LEFT + RIGHT PANELS */
+#left-panel,
 #right-panel {
   display: flex;
   flex-direction: column;
@@ -42,18 +36,13 @@ body {
 .chart-container {
   background: white;
   border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
   height: 200px;
   overflow: hidden;
 }
 
-/* REQUIRED FOR ARCGIS CHART COMPONENT TO RENDER */
-arcgis-chart {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* MAP CONTAINER */
+/* MAP AREA */
 #map-container {
   background: #bcdcf1;
   border: 1px solid #aaa;
@@ -62,21 +51,19 @@ arcgis-chart {
   min-height: 300px;
 }
 
-/* MAP VIEW DIV */
 #viewDiv {
   width: 100%;
   height: 100%;
 }
 
-/* RESOURCE BOX */
-#resource-box {
+/* RESOURCES BOX */
+#resourceBox {
   background: white;
-  border: 1px solid black;
-  padding: 10px;
-  height: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
-/* BOTTOM CHART */
+/* BOTTOM CHART AREA */
 #bottom-chart {
   width: 100%;
   height: 25vh;
@@ -85,6 +72,7 @@ arcgis-chart {
 
 #app-downloads-chart {
   background: white;
-  height: 100%;
   border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 100%;
 }

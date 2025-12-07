@@ -22,14 +22,14 @@ import {
 
 
 // ------------------------------------------------------------
-// 0. INITIAL PLACEHOLDERS ON PAGE LOAD
+// INITIAL PLACEHOLDERS ON LOAD
 // ------------------------------------------------------------
 resetChartsToPlaceholder();
 resetResourcesToPlaceholder();
 
 
 // ------------------------------------------------------------
-// 1. BUILD TOTAL ONLINE GGR PER STATE (from your JSON)
+// BUILD TOTAL ONLINE GGR PER STATE
 // ------------------------------------------------------------
 const totalsByStateName = {};
 
@@ -46,7 +46,7 @@ for (const key in window.bettingStateData) {
 
 
 // ------------------------------------------------------------
-// 2. FETCH YOUTH % (15–24 / total pop) FROM ACS
+// FETCH YOUTH % (15–24 layer — YOUR EXISTING CHOROPLETH)
 // ------------------------------------------------------------
 async function fetchYouthPercentByStateName() {
   const url =
@@ -75,14 +75,13 @@ async function fetchYouthPercentByStateName() {
         continue;
       }
 
-      result[name] = youth / total;
+      result[name] = youth / total; // still used for your YOUTH LAYER ONLY
     }
 
-    console.log("Youth percent by state:", result);
     return result;
 
   } catch (err) {
-    console.error("Error fetching ACS youth data:", err);
+    console.error("Youth choropleth API error:", err);
     return {};
   }
 }
@@ -91,7 +90,121 @@ const youthPercentByStateName = await fetchYouthPercentByStateName();
 
 
 // ------------------------------------------------------------
-// 3. HEATMAP LAYER — College Locations (IPEDS)
+// FETCH TOTAL POPULATION (ACS 2022)
+// ------------------------------------------------------------
+async function fetchPopulationByStateName() {
+  const url =
+    "https://api.census.gov/data/2022/acs/acs5" +
+    "?get=NAME,B01001_001E&for=state:*";
+
+  try {
+    const resp = await fetch(url);
+    const json = await resp.json();
+
+    const header = json[0];
+    const rows = json.slice(1);
+
+    const nameIdx = header.indexOf("NAME");
+    const popIdx = header.indexOf("B01001_001E");
+
+    const result = {};
+
+    for (const row of rows) {
+      const name = row[nameIdx];
+      const pop = Number(row[popIdx]);
+
+      if (!name || !Number.isFinite(pop)) continue;
+
+      result[name] = pop;
+    }
+
+    return result;
+
+  } catch (err) {
+    console.error("Population API error:", err);
+    return {};
+  }
+}
+
+const populationByStateName = await fetchPopulationByStateName();
+
+
+// ------------------------------------------------------------
+// FETCH YOUTH AGES 18–24 (ACS 2022) — USED IN POPUP ONLY
+// ------------------------------------------------------------
+async function fetchYouth18_24ByState() {
+  const vars = [
+    "B01001_007E", // M 18–19
+    "B01001_008E", // M 20
+    "B01001_009E", // M 21
+    "B01001_010E", // M 22–24
+
+    "B01001_031E", // F 18–19
+    "B01001_032E", // F 20
+    "B01001_033E", // F 21
+    "B01001_034E"  // F 22–24
+  ].join(",");
+
+  const url =
+    `https://api.census.gov/data/2022/acs/acs5?get=NAME,B01001_001E,${vars}&for=state:*`;
+
+  try {
+    const resp = await fetch(url);
+    const json = await resp.json();
+
+    const header = json[0];
+    const rows = json.slice(1);
+
+    const nameIdx = header.indexOf("NAME");
+    const totalIdx = header.indexOf("B01001_001E");
+
+    // indexes for all 8 youth variables
+    const idx = {
+      m18_19: header.indexOf("B01001_007E"),
+      m20:    header.indexOf("B01001_008E"),
+      m21:    header.indexOf("B01001_009E"),
+      m22_24: header.indexOf("B01001_010E"),
+      f18_19: header.indexOf("B01001_031E"),
+      f20:    header.indexOf("B01001_032E"),
+      f21:    header.indexOf("B01001_033E"),
+      f22_24: header.indexOf("B01001_034E"),
+    };
+
+    const result = {};
+
+    for (const row of rows) {
+      const name = row[nameIdx];
+      const totalPop = Number(row[totalIdx]);
+
+      if (!name || !Number.isFinite(totalPop)) continue;
+
+      const youth =
+        Number(row[idx.m18_19]) +
+        Number(row[idx.m20]) +
+        Number(row[idx.m21]) +
+        Number(row[idx.m22_24]) +
+        Number(row[idx.f18_19]) +
+        Number(row[idx.f20]) +
+        Number(row[idx.f21]) +
+        Number(row[idx.f22_24]);
+
+      result[name] = youth / totalPop;
+    }
+
+    console.log("Youth ages 18–24 (ACS 2022):", result);
+    return result;
+
+  } catch (err) {
+    console.error("ACS 18–24 youth fetch error:", err);
+    return {};
+  }
+}
+
+const youth18_24ByStateName = await fetchYouth18_24ByState();
+
+
+// ------------------------------------------------------------
+// HEATMAP LAYER (IPEDS)
 // ------------------------------------------------------------
 const collegeHeatmapRenderer = {
   type: "heatmap",
@@ -115,24 +228,24 @@ const ipedsHeatmapLayer = new GeoJSONLayer({
 
 
 // ------------------------------------------------------------
-// 4. CREATE MAP + LAYERS
+// CREATE MAP + THEMATIC LAYERS
 // ------------------------------------------------------------
 const ggrLayer = await createGGRLayer(totalsByStateName);
 ggrLayer.visible = false;
 
-const youthLayer = await createYouthLayer(youthPercentByStateName);
+const youthLayer = await createYouthLayer(youth18_24ByStateName);
+
 youthLayer.visible = false;
 
 const map = new Map({
   basemap: "gray-vector",
   layers: [
-    ipedsHeatmapLayer, // off by default
-    ggrLayer,          // off by default
-    youthLayer,        // off by default
-    statesLayer        // always visible — click & highlight
+    ipedsHeatmapLayer,
+    ggrLayer,
+    youthLayer,
+    statesLayer // always visible for click + highlight
   ]
 });
-
 
 const view = new MapView({
   container: "viewDiv",
@@ -143,14 +256,13 @@ const view = new MapView({
 
 
 // ------------------------------------------------------------
-// 5. LAYER LIST
+// LAYER LIST
 // ------------------------------------------------------------
-const layerList = new LayerList({ view });
-view.ui.add(layerList, "top-right");
+view.ui.add(new LayerList({ view }), "top-right");
 
 
 // ------------------------------------------------------------
-// 6. LEGEND (Expand Widget, expanded by default)
+// LEGEND (EXPAND WIDGET)
 // ------------------------------------------------------------
 const legendWidget = new Legend({
   view,
@@ -161,17 +273,18 @@ const legendWidget = new Legend({
   ]
 });
 
-const legendExpand = new Expand({
-  view,
-  content: legendWidget,
-  expanded: true // show legend by default
-});
-
-view.ui.add(legendExpand, "bottom-left");
+view.ui.add(
+  new Expand({
+    view,
+    content: legendWidget,
+    expanded: true
+  }),
+  "bottom-left"
+);
 
 
 // ------------------------------------------------------------
-// 7. CLICK HANDLER — Handles legal + non-legal states
+// CLICK + POPUP + HIGHLIGHT
 // ------------------------------------------------------------
 let highlightHandle = null;
 
@@ -180,33 +293,69 @@ view.on("click", async (event) => {
   const result = hit.results.find(r => r.graphic.layer === statesLayer);
   if (!result) return;
 
-  const attrs = result.graphic.attributes;
-  const abbr = attrs.STATE_ABBR;
+  const graphic = result.graphic;
+  const attrs = graphic.attributes;
 
-  const data = window.bettingStateData
-    ? window.bettingStateData[abbr]
-    : undefined;
+  const stateAbbr = attrs.STATE_ABBR;
+  const stateName = attrs.STATE_NAME;
 
-  // -------------------------------
-  // NON-LEGAL OR MISSING STATE
-  // -------------------------------
-  if (!data || !data.legalizationYear) {
+  const jsonData = window.bettingStateData[stateAbbr];
+
+  // Legalization year
+  const legalYear = jsonData?.legalizationYear || "Not legalized";
+
+  // ACS population
+  const pop = populationByStateName[stateName];
+  const popStr = pop ? pop.toLocaleString() : "N/A";
+
+  // Total GGR
+  const ggrRaw = totalsByStateName[stateName];
+  const ggrStr = ggrRaw ? "$" + ggrRaw.toLocaleString() : "N/A";
+
+  // Youth 18–24
+  const youth18_24 = youth18_24ByStateName[stateName];
+  const youthPctStr = youth18_24
+    ? (youth18_24 * 100).toFixed(2) + "%"
+    : "N/A";
+
+  // Count colleges inside the state polygon
+  let collegeCount = "N/A";
+  try {
+    const q = {
+      geometry: graphic.geometry,
+      spatialRelationship: "contains",
+      returnGeometry: false
+    };
+    const res = await ipedsHeatmapLayer.queryFeatures(q);
+    collegeCount = res.features.length;
+  } catch (err) {
+    console.error("College count error:", err);
+  }
+
+  // Update charts / resources
+  if (!jsonData || !jsonData.legalizationYear) {
     resetChartsToPlaceholder();
     resetResourcesToPlaceholder();
   } else {
-    updateCharts(abbr, data);
-    updateResources(data);
+    updateCharts(stateAbbr, jsonData);
+    updateResources(jsonData);
   }
 
-  // -------------------------------
-  // HIGHLIGHT SELECTED STATE
-  // -------------------------------
+  // Highlight clicked state
   const layerView = await view.whenLayerView(statesLayer);
+  if (highlightHandle) highlightHandle.remove();
+  highlightHandle = layerView.highlight(graphic);
 
-  if (highlightHandle) {
-    highlightHandle.remove();
-    highlightHandle = null;
-  }
-
-  highlightHandle = layerView.highlight(result.graphic);
+  // Open popup
+  view.popup.open({
+    location: event.mapPoint,
+    title: stateName,
+    content: `
+      <b>Legalization Year:</b> ${legalYear}<br>
+      <b>Colleges/Universities:</b> ${collegeCount}<br>
+      <b>Total Population (2022 ACS):</b> ${popStr}<br>
+      <b>Total Online Betting Revenue (2018–2024):</b> ${ggrStr}<br>
+      <b>Youth (18–24):</b> ${youthPctStr}<br>
+    `
+  });
 });

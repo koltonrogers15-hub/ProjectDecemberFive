@@ -2,8 +2,9 @@
 
 import FeatureLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/FeatureLayer.js";
 
+
 // ------------------------------------------------------------
-// 1. BASE STATES LAYER (for click / highlight / charts)
+// 1. BASE STATES LAYER (Transparent)
 // ------------------------------------------------------------
 export const statesLayer = new FeatureLayer({
   url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_States_Generalized_Boundaries/FeatureServer/0",
@@ -13,15 +14,16 @@ export const statesLayer = new FeatureLayer({
     type: "simple",
     symbol: {
       type: "simple-fill",
-      color: [255, 255, 255, 0], // transparent fill
+      color: [255, 255, 255, 0],
       outline: { color: "black", width: 1 }
     }
   },
   popupEnabled: false
 });
 
+
 // ------------------------------------------------------------
-// 2. GGR CHOROPLETH LAYER (Total Online GGR 2018–2024)
+// 2. GGR CHOROPLETH (unchanged)
 // ------------------------------------------------------------
 export async function createGGRLayer(totalsByStateName) {
   const results = await statesLayer.queryFeatures({
@@ -88,14 +90,19 @@ export async function createGGRLayer(totalsByStateName) {
           label: "$1.5B+"
         }
       ]
-    }
+    },
+    visible: false
   });
 }
 
+
+
 // ------------------------------------------------------------
-// 3. YOUTH % CHOROPLETH LAYER (15–24 as share of total pop)
+// 3. YOUTH 18–24 CHOROPLETH (purple ramp)
 // ------------------------------------------------------------
-export async function createYouthLayer(youthPercentByStateName) {
+// Uses youth18_24ByStateName computed in dashmap.js
+
+export async function createYouthLayer(youth18_24ByStateName) {
   const results = await statesLayer.queryFeatures({
     where: "1=1",
     returnGeometry: true,
@@ -104,7 +111,7 @@ export async function createYouthLayer(youthPercentByStateName) {
 
   const features = results.features.map((f, i) => {
     const name = f.attributes.STATE_NAME;
-    const val = youthPercentByStateName[name] ?? null;
+    const val = youth18_24ByStateName[name] ?? null;
 
     return {
       geometry: f.geometry,
@@ -117,7 +124,7 @@ export async function createYouthLayer(youthPercentByStateName) {
   });
 
   return new FeatureLayer({
-    title: "Youth Pop. % (15–24)",
+    title: "Youth Pop. % (18–24)",
     source: features,
     objectIdField: "OBJECTID",
     fields: [
@@ -125,43 +132,42 @@ export async function createYouthLayer(youthPercentByStateName) {
       { name: "STATE_NAME", type: "string" },
       { name: "youthPercent", type: "double" }
     ],
-   renderer: {
-  type: "class-breaks",
-  field: "youthPercent",
-  classBreakInfos: [
-    {
-      minValue: 0.015,
-      maxValue: 0.017,
-      symbol: { type: "simple-fill", color: "#f7fbff" },
-      label: "1.5% – 1.7%"
+    renderer: {
+      type: "class-breaks",
+      field: "youthPercent",
+      classBreakInfos: [
+        {
+          minValue: 0.070,
+          maxValue: 0.075,
+          symbol: { type: "simple-fill", color: "#f2e5ff" },
+          label: "7.0% – 7.5%"
+        },
+        {
+          minValue: 0.075,
+          maxValue: 0.085,
+          symbol: { type: "simple-fill", color: "#d4b9ff" },
+          label: "7.5% – 8.5%"
+        },
+        {
+          minValue: 0.085,
+          maxValue: 0.095,
+          symbol: { type: "simple-fill", color: "#b08cff" },
+          label: "8.5% – 9.5%"
+        },
+        {
+          minValue: 0.095,
+          maxValue: 0.105,
+          symbol: { type: "simple-fill", color: "#8c53ff" },
+          label: "9.5% – 10.5%"
+        },
+        {
+          minValue: 0.105,
+          maxValue: 0.125,
+          symbol: { type: "simple-fill", color: "#5a00e0" },
+          label: "10.5% – 12.5%"
+        }
+      ]
     },
-    {
-      minValue: 0.017,
-      maxValue: 0.019,
-      symbol: { type: "simple-fill", color: "#c6dbef" },
-      label: "1.7% – 1.9%"
-    },
-    {
-      minValue: 0.019,
-      maxValue: 0.021,
-      symbol: { type: "simple-fill", color: "#6baed6" },
-      label: "1.9% – 2.1%"
-    },
-    {
-      minValue: 0.021,
-      maxValue: 0.023,
-      symbol: { type: "simple-fill", color: "#3182bd" },
-      label: "2.1% – 2.3%"
-    },
-    {
-      minValue: 0.023,
-      maxValue: 0.030,
-      symbol: { type: "simple-fill", color: "#08519c" },
-      label: "2.3% – 3.0%"
-    }
-  ]
-}
-,
-    visible: false // start hidden; user toggles via LayerList
+    visible: false
   });
 }

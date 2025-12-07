@@ -7,8 +7,25 @@ import Legend from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Legend.js";
 import GeoJSONLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/GeoJSONLayer.js";
 import Expand from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Expand.js";
 
-import { statesLayer, createGGRLayer, createYouthLayer } from "./layers.js";
-import { updateCharts, updateResources } from "./charts.js";
+import {
+  statesLayer,
+  createGGRLayer,
+  createYouthLayer
+} from "./layers.js";
+
+import {
+  updateCharts,
+  updateResources,
+  resetChartsToPlaceholder,
+  resetResourcesToPlaceholder
+} from "./charts.js";
+
+
+// ------------------------------------------------------------
+// 0. INITIAL PLACEHOLDERS ON PAGE LOAD
+// ------------------------------------------------------------
+resetChartsToPlaceholder();
+resetResourcesToPlaceholder();
 
 
 // ------------------------------------------------------------
@@ -58,7 +75,7 @@ async function fetchYouthPercentByStateName() {
         continue;
       }
 
-      result[name] = youth / total; // 0–1 fraction
+      result[name] = youth / total;
     }
 
     console.log("Youth percent by state:", result);
@@ -74,7 +91,7 @@ const youthPercentByStateName = await fetchYouthPercentByStateName();
 
 
 // ------------------------------------------------------------
-// 3. CREATE HEATMAP LAYER FOR COLLEGE LOCATIONS (IPEDS)
+// 3. HEATMAP LAYER — College Locations (IPEDS)
 // ------------------------------------------------------------
 const collegeHeatmapRenderer = {
   type: "heatmap",
@@ -90,7 +107,7 @@ const collegeHeatmapRenderer = {
 };
 
 const ipedsHeatmapLayer = new GeoJSONLayer({
-  url: "./schoolsheatmap.geojson",   // <-- your file
+  url: "./schoolsheatmap.geojson",
   title: "College & University Density (Heatmap)",
   renderer: collegeHeatmapRenderer,
   visible: false
@@ -98,7 +115,7 @@ const ipedsHeatmapLayer = new GeoJSONLayer({
 
 
 // ------------------------------------------------------------
-// 4. CREATE MAP + ADD LAYERS
+// 4. CREATE MAP + LAYERS
 // ------------------------------------------------------------
 const ggrLayer = await createGGRLayer(totalsByStateName);
 ggrLayer.visible = false;
@@ -109,12 +126,13 @@ youthLayer.visible = false;
 const map = new Map({
   basemap: "gray-vector",
   layers: [
-    ipedsHeatmapLayer, // heatmap (off by default)
+    ipedsHeatmapLayer, // off by default
     ggrLayer,          // off by default
     youthLayer,        // off by default
-    statesLayer        // always on for clicking
+    statesLayer        // always visible — click & highlight
   ]
 });
+
 
 const view = new MapView({
   container: "viewDiv",
@@ -125,14 +143,14 @@ const view = new MapView({
 
 
 // ------------------------------------------------------------
-// 5. LAYERLIST (normal)
+// 5. LAYER LIST
 // ------------------------------------------------------------
 const layerList = new LayerList({ view });
 view.ui.add(layerList, "top-right");
 
 
 // ------------------------------------------------------------
-// 6. LEGEND (wrapped in Expand widget, expanded by default)
+// 6. LEGEND (Expand Widget, expanded by default)
 // ------------------------------------------------------------
 const legendWidget = new Legend({
   view,
@@ -146,14 +164,14 @@ const legendWidget = new Legend({
 const legendExpand = new Expand({
   view,
   content: legendWidget,
-  expanded: true   // <-- starts expanded
+  expanded: true // show legend by default
 });
 
 view.ui.add(legendExpand, "bottom-left");
 
 
 // ------------------------------------------------------------
-// 7. CLICK HANDLER
+// 7. CLICK HANDLER — Handles legal + non-legal states
 // ------------------------------------------------------------
 let highlightHandle = null;
 
@@ -169,13 +187,20 @@ view.on("click", async (event) => {
     ? window.bettingStateData[abbr]
     : undefined;
 
-  if (data) {
+  // -------------------------------
+  // NON-LEGAL OR MISSING STATE
+  // -------------------------------
+  if (!data || !data.legalizationYear) {
+    resetChartsToPlaceholder();
+    resetResourcesToPlaceholder();
+  } else {
     updateCharts(abbr, data);
     updateResources(data);
-  } else {
-    console.warn("No JSON data for state:", abbr);
   }
 
+  // -------------------------------
+  // HIGHLIGHT SELECTED STATE
+  // -------------------------------
   const layerView = await view.whenLayerView(statesLayer);
 
   if (highlightHandle) {

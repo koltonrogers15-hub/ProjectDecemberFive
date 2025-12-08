@@ -267,8 +267,8 @@ view.ui.add(new LayerList({ view }), "top-right");
 const legendWidget = new Legend({
   view,
   layerInfos: [
-    { layer: ggrLayer, title: "Total Online GGR (2018–2024)" },
-    { layer: youthLayer, title: "Youth Pop. % (15–24)" },
+    { layer: ggrLayer, title: "Total Online Sports GGR (2018–2024)" },
+    { layer: youthLayer, title: "Youth Pop. % (18–24)" },
     { layer: ipedsHeatmapLayer, title: "College Density (Heatmap)" }
   ]
 });
@@ -354,7 +354,7 @@ view.on("click", async (event) => {
       <b>Legalization Year:</b> ${legalYear}<br>
       <b>Colleges/Universities:</b> ${collegeCount}<br>
       <b>Total Population (2022 ACS):</b> ${popStr}<br>
-      <b>Total Online Betting Revenue (2018–2024):</b> ${ggrStr}<br>
+      <b>Total Online Sports GGR (2018–2024):</b> ${ggrStr}<br>
       <b>Youth (18–24):</b> ${youthPctStr}<br>
     `
   });

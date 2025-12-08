@@ -47,7 +47,7 @@ export async function createGGRLayer(totalsByStateName) {
   });
 
   return new FeatureLayer({
-    title: "Total Online GGR (2018–2024)",
+    title: "Total Online Sports GGR (2018–2024)",
     source: features,
     objectIdField: "OBJECTID",
     fields: [

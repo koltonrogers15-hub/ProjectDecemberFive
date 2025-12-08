@@ -3,56 +3,45 @@
 let lineChart = null;
 let pieChart = null;
 let barChart1 = null;
-let appDownloadsChart = null;   // optional if you later add this chart
+let appDownloadsChart = null;
 
 function getChartCtor() {
-  return window.Chart; // Chart.js globally loaded in index.html
+  return window.Chart;
 }
 
 
 // ------------------------------------------------------------
-// PLACEHOLDER FUNCTIONS (Greyed-out / Disabled Mode)
+// PLACEHOLDERS (GREYED OUT CHARTS)
 // ------------------------------------------------------------
 export function resetChartsToPlaceholder() {
   const Chart = getChartCtor();
 
-  // ==============================
-  // 1) LINE CHART PLACEHOLDER
-  // ==============================
-  const lineCanvas = document.getElementById("lineChart");
-  const lineCtx = lineCanvas.getContext("2d");
-
+  // ------------------ LINE PLACEHOLDER ------------------
+  const lineCtx = document.getElementById("lineChart").getContext("2d");
   if (lineChart) lineChart.destroy();
 
   lineChart = new Chart(lineCtx, {
     type: "line",
     data: {
-      labels: ["", "", "", "", "", ""],
+      labels: ["","","","","",""],
       datasets: [
         {
           label: "No Data",
-          data: [0, 0, 0, 0, 0, 0],
+          data: [0,0,0,0,0,0],
           borderColor: "rgba(150,150,150,0.7)",
-          borderDash: [6, 6],   // <-- dashed disabled style
+          borderDash: [6,6],
           borderWidth: 2,
           fill: false,
           tension: 0
         }
       ]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
-    }
+    options: { responsive: true, maintainAspectRatio: false }
   });
 
 
-  // ==============================
-  // 2) PIE CHART PLACEHOLDER
-  // ==============================
-  const pieCanvas = document.getElementById("pieChart");
-  const pieCtx = pieCanvas.getContext("2d");
-
+  // ------------------ PIE PLACEHOLDER ------------------
+  const pieCtx = document.getElementById("pieChart").getContext("2d");
   if (pieChart) pieChart.destroy();
 
   pieChart = new Chart(pieCtx, {
@@ -68,19 +57,12 @@ export function resetChartsToPlaceholder() {
         }
       ]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
-    }
+    options: { responsive: true, maintainAspectRatio: false }
   });
 
 
-  // ==============================
-  // 3) BAR CHART PLACEHOLDER
-  // ==============================
-  const barCanvas = document.getElementById("barChart1");
-  const barCtx = barCanvas.getContext("2d");
-
+  // ------------------ BAR PLACEHOLDER ------------------
+  const barCtx = document.getElementById("barChart1").getContext("2d");
   if (barChart1) barChart1.destroy();
 
   barChart1 = new Chart(barCtx, {
@@ -91,7 +73,7 @@ export function resetChartsToPlaceholder() {
         {
           label: "0",
           data: [0],
-          backgroundColor: "rgba(180,180,180,0.5)" // disabled color
+          backgroundColor: "rgba(180,180,180,0.5)"
         }
       ]
     },
@@ -103,14 +85,10 @@ export function resetChartsToPlaceholder() {
   });
 
 
-  // ==============================
-  // 4) (OPTIONAL) APP DOWNLOADS CHART PLACEHOLDER
-  // Only runs if that chart exists
-  // ==============================
+  // ------------------ OPTIONAL APP DOWNLOAD PLACEHOLDER ------------------
   const downloadsDiv = document.getElementById("app-downloads-chart");
   if (downloadsDiv) {
     const canvas = downloadsDiv.querySelector("canvas");
-
     if (canvas) {
       const ctx = canvas.getContext("2d");
 
@@ -123,7 +101,7 @@ export function resetChartsToPlaceholder() {
           datasets: [
             {
               label: "Downloads",
-              data: [0, 0, 0],
+              data: [0,0,0],
               backgroundColor: "rgba(180,180,180,0.5)"
             }
           ]
@@ -150,8 +128,9 @@ export function resetResourcesToPlaceholder() {
 }
 
 
+
 // ------------------------------------------------------------
-// MAIN UPDATE FUNCTION — RUN ONLY FOR LEGAL STATES
+// MAIN UPDATE FUNCTION (REAL CHARTS FOR LEGAL STATES)
 // ------------------------------------------------------------
 export async function updateCharts(abbr, data) {
   if (!data || !data.legalizationYear) {
@@ -162,16 +141,12 @@ export async function updateCharts(abbr, data) {
 
   const Chart = getChartCtor();
 
-  // ============================================
-  // 1) LINE CHART — Online GGR over time
-  // ============================================
+  // ------------------ LINE CHART ------------------
   const ggr = data.onlineGGR;
-  const years = Object.keys(ggr).filter((y) => y !== "2018to2024");
-  const values = years.map((y) => ggr[y] ?? 0);
+  const years = Object.keys(ggr).filter(y => y !== "2018to2024");
+  const values = years.map(y => ggr[y] ?? 0);
 
-  const lineCanvas = document.getElementById("lineChart");
-  const lineCtx = lineCanvas.getContext("2d");
-
+  const lineCtx = document.getElementById("lineChart").getContext("2d");
   if (lineChart) lineChart.destroy();
 
   lineChart = new Chart(lineCtx, {
@@ -180,7 +155,8 @@ export async function updateCharts(abbr, data) {
       labels: years,
       datasets: [
         {
-          label: `Online GGR for ${data.stateName}`,
+         label: `Online Sports GGR for ${data.stateName}`,
+
           data: values,
           borderColor: "rgba(16,92,212,1)",
           backgroundColor: "rgba(16,92,212,0.2)",
@@ -193,25 +169,22 @@ export async function updateCharts(abbr, data) {
   });
 
 
-  // ============================================
-  // 2) PIE CHART — Online GGR vs Other Gaming Revenue
-  // ============================================
+  // ------------------ PIE CHART (NEW PINK COLORS) ------------------
   const online2024 = ggr["2024"] ?? 0;
   const otherRevenue = data.GGRMinusSportsBetting ?? 0;
 
-  const pieCanvas = document.getElementById("pieChart");
-  const pieCtx = pieCanvas.getContext("2d");
-
+  const pieCtx = document.getElementById("pieChart").getContext("2d");
   if (pieChart) pieChart.destroy();
 
   pieChart = new Chart(pieCtx, {
     type: "pie",
     data: {
-      labels: ["Online GGR (2024)", "Other Gaming Revenue"],
+     labels: ["Online Sports GGR (2024)", "Other Gaming Revenue"],
+
       datasets: [
         {
           data: [online2024, otherRevenue],
-          backgroundColor: ["#1E88E5", "#90CAF9"]
+          backgroundColor: ["#ff5c8d", "#e5b8ff"]  // PINK PALETTE 2A
         }
       ]
     },
@@ -219,16 +192,12 @@ export async function updateCharts(abbr, data) {
   });
 
 
-  // ============================================
-  // 3) BAR CHART — Search Interest Trend
-  // ============================================
+  // ------------------ BAR CHART (NEW TEAL COLORS) ------------------
   const search = data.searchScore;
-  const searchYears = Object.keys(search).filter((y) => y !== "2018to2024");
-  const searchValues = searchYears.map((y) => search[y] ?? 0);
+  const searchYears = Object.keys(search).filter(y => y !== "2018to2024");
+  const searchValues = searchYears.map(y => search[y] ?? 0);
 
-  const barCanvas = document.getElementById("barChart1");
-  const barCtx = barCanvas.getContext("2d");
-
+  const barCtx = document.getElementById("barChart1").getContext("2d");
   if (barChart1) barChart1.destroy();
 
   barChart1 = new Chart(barCtx, {
@@ -239,7 +208,8 @@ export async function updateCharts(abbr, data) {
         {
           label: `Search Interest Trend (${data.stateName})`,
           data: searchValues,
-          backgroundColor: "#42A5F5"
+          backgroundColor: "#2ec4b6",      // TEAL PRIMARY
+          hoverBackgroundColor: "#00a6a6" // TEAL HOVER
         }
       ]
     },
@@ -254,8 +224,9 @@ export async function updateCharts(abbr, data) {
 }
 
 
+
 // ------------------------------------------------------------
-// 4) RESOURCE PANEL UPDATE (ONLY FOR LEGAL STATES)
+// RESOURCE PANEL UPDATE
 // ------------------------------------------------------------
 export function updateResources(data) {
   if (!data || !data.legalizationYear) {
@@ -263,15 +234,11 @@ export function updateResources(data) {
     return;
   }
 
-  const box = document.getElementById("resourceContent");
-
-  box.innerHTML = `
+  document.getElementById("resourceContent").innerHTML = `
     <strong>${data.stateName}</strong><br><br>
-
     <strong>Problem Gambling Hotline:</strong><br>
     Phone: ${data.hotline.phone}<br>
     <a href="${data.hotline.url}" target="_blank">Visit Hotline Website</a><br><br>
-
     <strong>State Gaming Commission:</strong><br>
     <a href="${data.commissionUrl}" target="_blank">Commission Website</a>
   `;

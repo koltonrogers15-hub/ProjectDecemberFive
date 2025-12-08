@@ -1,5 +1,3 @@
-// dashmap.js
-
 import Map from "https://js.arcgis.com/4.33/@arcgis/core/Map.js";
 import MapView from "https://js.arcgis.com/4.33/@arcgis/core/views/MapView.js";
 import LayerList from "https://js.arcgis.com/4.33/@arcgis/core/widgets/LayerList.js";
@@ -20,17 +18,9 @@ import {
   resetResourcesToPlaceholder
 } from "./charts.js";
 
-
-// ------------------------------------------------------------
-// INITIAL PLACEHOLDERS ON LOAD
-// ------------------------------------------------------------
 resetChartsToPlaceholder();
 resetResourcesToPlaceholder();
 
-
-// ------------------------------------------------------------
-// BUILD TOTAL ONLINE GGR PER STATE
-// ------------------------------------------------------------
 const totalsByStateName = {};
 
 for (const key in window.bettingStateData) {
@@ -44,10 +34,6 @@ for (const key in window.bettingStateData) {
   totalsByStateName[obj.stateName] = sum;
 }
 
-
-// ------------------------------------------------------------
-// FETCH YOUTH % (15–24 layer — YOUR EXISTING CHOROPLETH)
-// ------------------------------------------------------------
 async function fetchYouthPercentByStateName() {
   const url =
     "https://api.census.gov/data/2022/acs/acs5" +
@@ -71,11 +57,9 @@ async function fetchYouthPercentByStateName() {
       const youth = Number(row[youthIdx]);
       const total = Number(row[totalIdx]);
 
-      if (!name || !Number.isFinite(youth) || !Number.isFinite(total) || total <= 0) {
-        continue;
-      }
+      if (!name || !Number.isFinite(youth) || !Number.isFinite(total) || total <= 0) continue;
 
-      result[name] = youth / total; // still used for your YOUTH LAYER ONLY
+      result[name] = youth / total;
     }
 
     return result;
@@ -88,10 +72,6 @@ async function fetchYouthPercentByStateName() {
 
 const youthPercentByStateName = await fetchYouthPercentByStateName();
 
-
-// ------------------------------------------------------------
-// FETCH TOTAL POPULATION (ACS 2022)
-// ------------------------------------------------------------
 async function fetchPopulationByStateName() {
   const url =
     "https://api.census.gov/data/2022/acs/acs5" +
@@ -128,21 +108,16 @@ async function fetchPopulationByStateName() {
 
 const populationByStateName = await fetchPopulationByStateName();
 
-
-// ------------------------------------------------------------
-// FETCH YOUTH AGES 18–24 (ACS 2022) — USED IN POPUP ONLY
-// ------------------------------------------------------------
 async function fetchYouth18_24ByState() {
   const vars = [
-    "B01001_007E", // M 18–19
-    "B01001_008E", // M 20
-    "B01001_009E", // M 21
-    "B01001_010E", // M 22–24
-
-    "B01001_031E", // F 18–19
-    "B01001_032E", // F 20
-    "B01001_033E", // F 21
-    "B01001_034E"  // F 22–24
+    "B01001_007E",
+    "B01001_008E",
+    "B01001_009E",
+    "B01001_010E",
+    "B01001_031E",
+    "B01001_032E",
+    "B01001_033E",
+    "B01001_034E"
   ].join(",");
 
   const url =
@@ -158,7 +133,6 @@ async function fetchYouth18_24ByState() {
     const nameIdx = header.indexOf("NAME");
     const totalIdx = header.indexOf("B01001_001E");
 
-    // indexes for all 8 youth variables
     const idx = {
       m18_19: header.indexOf("B01001_007E"),
       m20:    header.indexOf("B01001_008E"),
@@ -191,7 +165,6 @@ async function fetchYouth18_24ByState() {
       result[name] = youth / totalPop;
     }
 
-    console.log("Youth ages 18–24 (ACS 2022):", result);
     return result;
 
   } catch (err) {
@@ -202,10 +175,6 @@ async function fetchYouth18_24ByState() {
 
 const youth18_24ByStateName = await fetchYouth18_24ByState();
 
-
-// ------------------------------------------------------------
-// HEATMAP LAYER (IPEDS)
-// ------------------------------------------------------------
 const collegeHeatmapRenderer = {
   type: "heatmap",
   colorStops: [
@@ -226,15 +195,10 @@ const ipedsHeatmapLayer = new GeoJSONLayer({
   visible: false
 });
 
-
-// ------------------------------------------------------------
-// CREATE MAP + THEMATIC LAYERS
-// ------------------------------------------------------------
 const ggrLayer = await createGGRLayer(totalsByStateName);
 ggrLayer.visible = false;
 
 const youthLayer = await createYouthLayer(youth18_24ByStateName);
-
 youthLayer.visible = false;
 
 const map = new Map({
@@ -243,7 +207,7 @@ const map = new Map({
     ipedsHeatmapLayer,
     ggrLayer,
     youthLayer,
-    statesLayer // always visible for click + highlight
+    statesLayer
   ]
 });
 
@@ -254,16 +218,8 @@ const view = new MapView({
   zoom: 4
 });
 
-
-// ------------------------------------------------------------
-// LAYER LIST
-// ------------------------------------------------------------
 view.ui.add(new LayerList({ view }), "top-right");
 
-
-// ------------------------------------------------------------
-// LEGEND (EXPAND WIDGET)
-// ------------------------------------------------------------
 const legendWidget = new Legend({
   view,
   layerInfos: [
@@ -282,10 +238,6 @@ view.ui.add(
   "bottom-left"
 );
 
-
-// ------------------------------------------------------------
-// CLICK + POPUP + HIGHLIGHT
-// ------------------------------------------------------------
 let highlightHandle = null;
 
 view.on("click", async (event) => {
@@ -301,24 +253,19 @@ view.on("click", async (event) => {
 
   const jsonData = window.bettingStateData[stateAbbr];
 
-  // Legalization year
   const legalYear = jsonData?.legalizationYear || "Not legalized";
 
-  // ACS population
   const pop = populationByStateName[stateName];
   const popStr = pop ? pop.toLocaleString() : "N/A";
 
-  // Total GGR
   const ggrRaw = totalsByStateName[stateName];
   const ggrStr = ggrRaw ? "$" + ggrRaw.toLocaleString() : "N/A";
 
-  // Youth 18–24
   const youth18_24 = youth18_24ByStateName[stateName];
   const youthPctStr = youth18_24
     ? (youth18_24 * 100).toFixed(2) + "%"
     : "N/A";
 
-  // Count colleges inside the state polygon
   let collegeCount = "N/A";
   try {
     const q = {
@@ -332,7 +279,6 @@ view.on("click", async (event) => {
     console.error("College count error:", err);
   }
 
-  // Update charts / resources
   if (!jsonData || !jsonData.legalizationYear) {
     resetChartsToPlaceholder();
     resetResourcesToPlaceholder();
@@ -341,12 +287,10 @@ view.on("click", async (event) => {
     updateResources(jsonData);
   }
 
-  // Highlight clicked state
   const layerView = await view.whenLayerView(statesLayer);
   if (highlightHandle) highlightHandle.remove();
   highlightHandle = layerView.highlight(graphic);
 
-  // Open popup
   view.popup.open({
     location: event.mapPoint,
     title: stateName,

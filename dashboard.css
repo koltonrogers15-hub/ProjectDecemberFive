@@ -1,4 +1,3 @@
-/* GLOBAL -------------------------------------------------- */
 body {
   margin: 0;
   padding: 0;
@@ -7,7 +6,6 @@ body {
   overflow: hidden;
 }
 
-/* HEADER -------------------------------------------------- */
 #app-title {
   background: #0b63ce;
   color: white;
@@ -17,9 +15,8 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
-/* MAIN GRID LAYOUT --------------------------------------- */
 #app-container {
-  height: calc(100vh - 60px);   /* full minus header */
+  height: calc(100vh - 60px);
   display: grid;
   grid-template-columns: 20% 60% 20%;
   gap: 10px;
@@ -27,7 +24,6 @@ body {
   box-sizing: border-box;
 }
 
-/* PANELS -------------------------------------------------- */
 #left-panel,
 #right-panel {
   display: flex;
@@ -36,7 +32,6 @@ body {
   overflow-y: auto;
 }
 
-/* CHART CONTAINERS --------------------------------------- */
 .chart-container {
   background: white;
   border: 1px solid #ddd;
@@ -47,12 +42,10 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-/* Disabled chart feel for placeholders */
 .chart-container canvas {
-  opacity: 1; /* charts handle their own grey style */
+  opacity: 1;
 }
 
-/* MAP AREA ------------------------------------------------ */
 #map-container {
   background: #bcdcf1;
   border: 1px solid #aaa;
@@ -69,7 +62,6 @@ body {
   height: 100%;
 }
 
-/* RESOURCES BOX ------------------------------------------ */
 #resourceBox {
   background: white;
   border: 1px solid #ccc;
@@ -89,7 +81,6 @@ body {
   color: #666;
 }
 
-/* BOTTOM CHART AREA -------------------------------------- */
 #bottom-chart {
   width: 100%;
   height: 25vh;
@@ -105,8 +96,6 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-/* EXPAND WIDGET FIXES ------------------------------------ */
-/* Prevent Expand widget from overlapping too awkwardly */
 .esri-expand {
   margin: 10px;
 }

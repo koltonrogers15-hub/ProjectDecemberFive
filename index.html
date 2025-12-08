@@ -4,35 +4,27 @@
     <meta charset="UTF-8" />
     <title>Online Sports Betting and Young Adults Mapped</title>
 
-    <!-- MUST LOAD FIRST -->
     <script src="./chart.umd.js"></script>
 
-    <!-- ArcGIS JS API -->
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.33/esri/themes/light/main.css"
     />
     <script src="https://js.arcgis.com/4.33/"></script>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./dashboard.css" />
 
-    <!-- Data -->
     <script src="./stateobjects.js"></script>
 
-    <!-- Your app code (runs last) -->
     <script type="module" src="./dashmap.js"></script>
   </head>
 
   <body>
-    <!-- HEADER -->
     <header id="app-title">
       Online Sports Betting and Young Adults Mapped
     </header>
 
-    <!-- MAIN APP GRID -->
     <div id="app-container">
-      <!-- LEFT PANEL -->
       <div id="left-panel">
         <div class="chart-container">
           <canvas id="lineChart"></canvas>
@@ -43,19 +35,15 @@
         </div>
       </div>
 
-      <!-- MAP PANEL -->
       <div id="map-container">
         <div id="viewDiv"></div>
       </div>
 
-      <!-- RIGHT PANEL -->
       <div id="right-panel">
-        <!-- Bar Chart -->
         <div class="chart-container">
           <canvas id="barChart1"></canvas>
         </div>
 
-        <!-- Resources Box (NEW) -->
         <div
           class="chart-container"
           id="resourceBox"
@@ -67,7 +55,6 @@
       </div>
     </div>
 
-    <!-- BOTTOM BAR CHART -->
     <div id="bottom-chart">
       <div class="chart-container" id="app-downloads-chart"></div>
     </div>

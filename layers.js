@@ -1,11 +1,9 @@
-// layers.js
+
 
 import FeatureLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/FeatureLayer.js";
 
 
-// ------------------------------------------------------------
-// 1. BASE STATES LAYER (Transparent)
-// ------------------------------------------------------------
+
 export const statesLayer = new FeatureLayer({
   url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_States_Generalized_Boundaries/FeatureServer/0",
   title: "US States (Base)",
@@ -22,9 +20,7 @@ export const statesLayer = new FeatureLayer({
 });
 
 
-// ------------------------------------------------------------
-// 2. GGR CHOROPLETH (unchanged)
-// ------------------------------------------------------------
+
 export async function createGGRLayer(totalsByStateName) {
   const results = await statesLayer.queryFeatures({
     where: "1=1",
@@ -97,10 +93,6 @@ export async function createGGRLayer(totalsByStateName) {
 
 
 
-// ------------------------------------------------------------
-// 3. YOUTH 18–24 CHOROPLETH (purple ramp)
-// ------------------------------------------------------------
-// Uses youth18_24ByStateName computed in dashmap.js
 
 export async function createYouthLayer(youth18_24ByStateName) {
   const results = await statesLayer.queryFeatures({

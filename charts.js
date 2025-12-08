@@ -1,4 +1,4 @@
-// charts.js
+
 
 let lineChart = null;
 let pieChart = null;
@@ -10,13 +10,11 @@ function getChartCtor() {
 }
 
 
-// ------------------------------------------------------------
-// PLACEHOLDERS (GREYED OUT CHARTS)
-// ------------------------------------------------------------
+
 export function resetChartsToPlaceholder() {
   const Chart = getChartCtor();
 
-  // ------------------ LINE PLACEHOLDER ------------------
+
   const lineCtx = document.getElementById("lineChart").getContext("2d");
   if (lineChart) lineChart.destroy();
 
@@ -40,7 +38,7 @@ export function resetChartsToPlaceholder() {
   });
 
 
-  // ------------------ PIE PLACEHOLDER ------------------
+ 
   const pieCtx = document.getElementById("pieChart").getContext("2d");
   if (pieChart) pieChart.destroy();
 
@@ -61,7 +59,7 @@ export function resetChartsToPlaceholder() {
   });
 
 
-  // ------------------ BAR PLACEHOLDER ------------------
+  
   const barCtx = document.getElementById("barChart1").getContext("2d");
   if (barChart1) barChart1.destroy();
 
@@ -85,7 +83,7 @@ export function resetChartsToPlaceholder() {
   });
 
 
-  // ------------------ OPTIONAL APP DOWNLOAD PLACEHOLDER ------------------
+  
   const downloadsDiv = document.getElementById("app-downloads-chart");
   if (downloadsDiv) {
     const canvas = downloadsDiv.querySelector("canvas");
@@ -119,9 +117,7 @@ export function resetChartsToPlaceholder() {
 }
 
 
-// ------------------------------------------------------------
-// RESOURCE PANEL PLACEHOLDER
-// ------------------------------------------------------------
+
 export function resetResourcesToPlaceholder() {
   document.getElementById("resourceContent").innerHTML =
     "<i>This state does not offer legalized online betting.</i>";
@@ -129,9 +125,7 @@ export function resetResourcesToPlaceholder() {
 
 
 
-// ------------------------------------------------------------
-// MAIN UPDATE FUNCTION (REAL CHARTS FOR LEGAL STATES)
-// ------------------------------------------------------------
+
 export async function updateCharts(abbr, data) {
   if (!data || !data.legalizationYear) {
     resetChartsToPlaceholder();
@@ -141,7 +135,6 @@ export async function updateCharts(abbr, data) {
 
   const Chart = getChartCtor();
 
-  // ------------------ LINE CHART ------------------
   const ggr = data.onlineGGR;
   const years = Object.keys(ggr).filter(y => y !== "2018to2024");
   const values = years.map(y => ggr[y] ?? 0);
@@ -169,7 +162,7 @@ export async function updateCharts(abbr, data) {
   });
 
 
-  // ------------------ PIE CHART (NEW PINK COLORS) ------------------
+
   const online2024 = ggr["2024"] ?? 0;
   const otherRevenue = data.GGRMinusSportsBetting ?? 0;
 
@@ -184,7 +177,7 @@ export async function updateCharts(abbr, data) {
       datasets: [
         {
           data: [online2024, otherRevenue],
-          backgroundColor: ["#ff5c8d", "#e5b8ff"]  // PINK PALETTE 2A
+          backgroundColor: ["#ff5c8d", "#e5b8ff"]  
         }
       ]
     },
@@ -192,7 +185,7 @@ export async function updateCharts(abbr, data) {
   });
 
 
-  // ------------------ BAR CHART (NEW TEAL COLORS) ------------------
+  
   const search = data.searchScore;
   const searchYears = Object.keys(search).filter(y => y !== "2018to2024");
   const searchValues = searchYears.map(y => search[y] ?? 0);
@@ -225,9 +218,7 @@ export async function updateCharts(abbr, data) {
 
 
 
-// ------------------------------------------------------------
-// RESOURCE PANEL UPDATE
-// ------------------------------------------------------------
+
 export function updateResources(data) {
   if (!data || !data.legalizationYear) {
     resetResourcesToPlaceholder();

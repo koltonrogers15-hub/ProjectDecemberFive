@@ -196,7 +196,7 @@ const ipedsHeatmapLayer = new GeoJSONLayer({
 });
 
 const ggrLayer = await createGGRLayer(totalsByStateName);
-ggrLayer.visible = false;
+ggrLayer.visible = True;
 
 const youthLayer = await createYouthLayer(youth18_24ByStateName);
 youthLayer.visible = false;

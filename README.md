@@ -9,9 +9,9 @@ In 2018, the supreme court gave states the ability to legalize and regulate spor
 
 * The lower left container presents a bar chart showing the proportions of revenue generated from sports betting versus other forms of gambling (horse racing, retail casinos, etc). The data was dervived from the American Gaming Association reports and reports from the UNLV Center for Gaming Research.  
 
-* The upper right container presents a bar chart showing the search trend score for online sports betting terms, such as "parlay." (Data from google trends) 
+* The upper right container presents a bar chart showing the search trend score for online sports betting terms, such as "parlay." Data was dervived from google trends.
 
 * The lower right container presents some state-specific resources for gambling safety and awareness. 
 
-## Chart updates are tired to click events for each state. Click a new state to see that state's data.
+## Chart updates are tied to click events for each state. Click a new state to see that state's data.
 
